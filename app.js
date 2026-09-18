@@ -7,12 +7,3 @@ async function makeVideo(){if(!window.MediaRecorder||!HTMLCanvasElement.prototyp
 async function prepare(){const btn=$('#pip');btn.disabled=true;btn.textContent='Valmistellaan PiP…';$('#status').textContent='Muodostetaan PiP-kuvaa…';try{const blob=await makeVideo();if(blobUrl)URL.revokeObjectURL(blobUrl);blobUrl=URL.createObjectURL(blob);const v=$('#video');v.src=blobUrl;v.load();btn.disabled=false;btn.textContent='Avaa tulokset PiP';$('#status').textContent='Valmis. Avaa PiP ja siirry sen jälkeen eBirdieen.'}catch(e){btn.textContent='PiP ei valmistunut';$('#status').textContent='PiP-videon valmistelu ei onnistunut: '+e.message}}
 $('#file').addEventListener('change',async e=>{try{const f=e.target.files?.[0];if(!f)return;data=norm(JSON.parse(await f.text()));render();await prepare()}catch(err){$('#card').hidden=true;$('#status').textContent='Tiedoston avaaminen epäonnistui: '+err.message}});
 $('#pip').addEventListener('click',()=>{const v=$('#video');v.currentTime=0;v.play().then(()=>{if(typeof v.webkitSupportsPresentationMode==='function'&&v.webkitSupportsPresentationMode('picture-in-picture')&&typeof v.webkitSetPresentationMode==='function'){v.webkitSetPresentationMode('picture-in-picture');return}if(document.pictureInPictureEnabled&&v.requestPictureInPicture)return v.requestPictureInPicture();throw Error('PiP ei ole käytettävissä.')}).catch(e=>$('#status').textContent='PiP:n avaaminen ei onnistunut: '+e.message)});
-
-$('#downloadTest').addEventListener('click',()=>{
-  const sample={player:'Petri',course:'Peurunka Golf',tee:'Keltainen',startTime:'10:45',scores:[4,5,6,4,5,4,3,5,4,5,6,4,4,4,5,4,5,4]};
-  const blob=new Blob([JSON.stringify(sample,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='test-round.json';document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-  $('#status').textContent='Testikierros ladattu. Avaa se Tiedostot-sovelluksesta painikkeella “Avaa kierrostiedosto”.';
-});
