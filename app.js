@@ -16,6 +16,13 @@ function decodeTransferHash(){
     while(b64.length%4)b64+='=';
     const binary=atob(b64),bytes=Uint8Array.from(binary,ch=>ch.charCodeAt(0));
     data=norm(JSON.parse(new TextDecoder().decode(bytes)));
+    // Remove the transfer hash immediately. The working JSON-file path runs on a
+    // clean document URL, so the direct path now prepares PiP in the same state.
+    history.replaceState(null,'',location.pathname+location.search);
+    const v=$('#video');
+    v.pause();
+    v.removeAttribute('src');
+    v.load();
     render();
     directNeedsPrepare=true;
     const btn=$('#pip');
