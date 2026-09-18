@@ -8,17 +8,19 @@ async function prepare(){const btn=$('#pip');btn.disabled=true;btn.textContent='
 $('#file').addEventListener('change',async e=>{try{const f=e.target.files?.[0];if(!f)return;data=norm(JSON.parse(await f.text()));render();await prepare()}catch(err){$('#card').hidden=true;$('#status').textContent='Tiedoston avaaminen epäonnistui: '+err.message}});
 $('#pip').addEventListener('click',async()=>{if(directNeedsPrepare){directNeedsPrepare=false;await prepare();return}const v=$('#video');try{v.currentTime=0;const playPromise=v.play();if(typeof v.webkitSupportsPresentationMode==='function'&&v.webkitSupportsPresentationMode('picture-in-picture')&&typeof v.webkitSetPresentationMode==='function'){v.webkitSetPresentationMode('picture-in-picture');playPromise?.catch(()=>{});return}if(document.pictureInPictureEnabled&&v.requestPictureInPicture){const pipPromise=v.requestPictureInPicture();playPromise?.catch(()=>{});pipPromise?.catch(e=>$('#status').textContent='PiP:n avaaminen ei onnistunut: '+e.message);return}throw Error('PiP ei ole käytettävissä.')}catch(e){$('#status').textContent='PiP:n avaaminen ei onnistunut: '+e.message}});
 
-function decodeTransferHash(){
+function decodeTransfer(){
   try{
-    const m=location.hash.match(/^#data=([A-Za-z0-9_-]+)$/);
-    if(!m)return false;
-    let b64=m[1].replace(/-/g,'+').replace(/_/g,'/');
+    const params=new URLSearchParams(location.search);
+    let encoded=params.get('data');
+    if(!encoded){
+      const m=location.hash.match(/^#data=([A-Za-z0-9_-]+)$/);
+      encoded=m?.[1]||'';
+    }
+    if(!encoded)return false;
+    let b64=encoded.replace(/-/g,'+').replace(/_/g,'/');
     while(b64.length%4)b64+='=';
     const binary=atob(b64),bytes=Uint8Array.from(binary,ch=>ch.charCodeAt(0));
     data=norm(JSON.parse(new TextDecoder().decode(bytes)));
-    // Remove the transfer hash immediately. The working JSON-file path runs on a
-    // clean document URL, so the direct path now prepares PiP in the same state.
-    history.replaceState(null,'',location.pathname+location.search);
     const v=$('#video');
     v.pause();
     v.removeAttribute('src');
@@ -28,7 +30,7 @@ function decodeTransferHash(){
     const btn=$('#pip');
     btn.disabled=false;
     btn.textContent='Valmistele PiP';
-    $('#status').textContent='Kierros vastaanotettu. Valmistele PiP Safarissa.';
+    $('#status').textContent='Kierros vastaanotettu. Avaa kompassista Safariin ja valmistele PiP siellä.';
     return true;
   }catch(err){
     $('#card').hidden=true;
@@ -36,4 +38,5 @@ function decodeTransferHash(){
     return false;
   }
 }
-decodeTransferHash();
+
+decodeTransfer();
